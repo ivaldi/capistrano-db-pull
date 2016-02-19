@@ -6,8 +6,8 @@ Gem::Specification.new do |s|
   s.licenses    = ['BSD-2-Clause']
 
   s.summary     = 'Download remote database to local database'
-  s.description = 'Download remote database to local database, converting
-                   between different formats'
+  s.description = 'Capistrano task to download a remote database to a local
+                   database, converting between different formats on-the-fly.'
 
   s.authors     = ['Frank Groeneveld']
   s.email       = ['frank@ivaldi.nl']
