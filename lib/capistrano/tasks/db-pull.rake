@@ -3,7 +3,7 @@ namespace :db do
     on roles(:db) do
       remote = Application::Remote.new(self, fetch(:stage) || 'production')
       if remote.postgresql?
-        execute "pg_dump --data-only --exclude-table=schema_migrations --column-inserts | gzip -9 > #{fetch(:application)}.sql.gz"
+        execute "#{Database.factory(remote).dump} | gzip -9 > #{fetch(:application)}.sql.gz"
       else
         raise "Remote database adapter '#{remote.adapter}' is currently unsupported"
       end
