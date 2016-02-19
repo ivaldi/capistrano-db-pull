@@ -14,6 +14,10 @@ module Database
       adapter == 'sqlite3'
     end
 
+    def mysql?
+      adapter == 'mysql2' || adapter == 'mysql'
+    end
+
     def adapter
       @config['adapter'].downcase
     end
