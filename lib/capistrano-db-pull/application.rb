@@ -1,4 +1,4 @@
-module Database
+module Application
   class Base
     attr_accessor :capistrano, :config
 

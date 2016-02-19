@@ -1,7 +1,7 @@
 namespace :db do
   task :pull do
     on roles(:db) do
-      remote = Database::Remote.new(self, fetch(:stage) || 'production')
+      remote = Application::Remote.new(self, fetch(:stage) || 'production')
       if remote.postgresql?
         execute "pg_dump --data-only --exclude-table=schema_migrations --column-inserts | gzip -9 > #{fetch(:application)}.sql.gz"
       else
@@ -11,7 +11,7 @@ namespace :db do
       execute "rm #{fetch(:application)}.sql.gz"
     end
 
-    local = Database::Local.new(self)
+    local = Application::Local.new(self)
     if local.sqlite3?
       system "echo 'BEGIN;' > #{fetch(:application)}.sql"
       system "gunzip -c #{fetch(:application)}.sql.gz | sed '/^SET/ d' |\
