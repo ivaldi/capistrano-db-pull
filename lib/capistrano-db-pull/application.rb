@@ -21,6 +21,10 @@ module Application
     def adapter
       @config['adapter'].downcase
     end
+
+    def database
+      @config['database']
+    end
   end
 
   class Remote < Base
