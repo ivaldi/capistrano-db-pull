@@ -29,7 +29,7 @@ namespace :db do
     elsif remote.mysql? && local.sqlite3?
       system "gunzip -c #{fetch(:application)}.sql.gz |
           sed 's/\\`//g' |
-          sed \"s/\\\'/\'\'/g\" |
+          sed \"s/\\\\\\\'/\'\'/g\" |
           sed 's/\\\"/\"/g' > #{fetch(:application)}.sql"
     else
       raise "Local database adapter '#{local.adapter}' is currently unsupported"
