@@ -23,9 +23,6 @@ module Database
   end
 
   class PostgreSQL < Base
-    def dump
-      "pg_dump --data-only --exclude-table=schema_migrations --column-inserts"
-    end
   end
 
   class Sqlite3 < Base

@@ -1,10 +1,14 @@
 namespace :db do
   task :pull do
     remote = nil
+    local = Application::Local.new(self)
+
     on roles(:db) do
       remote = Application::Remote.new(self, fetch(:stage) || 'production')
-      if remote.postgresql?
-        execute "#{Database.factory(remote).dump} | gzip -9 > #{fetch(:application)}.sql.gz"
+      if remote.postgresql? && local.postgresql?
+        execute "pg_dump --no-owner #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
+      elsif remote.postgresql? && local.sqlite3?
+        execute "pg_dump --data-only --exclude-table=schema_migrations --column-inserts #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
       elsif remote.mysql?
         execute "mysqldump --skip-opt --no-create-info #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
       else
@@ -14,8 +18,11 @@ namespace :db do
       execute "rm #{fetch(:application)}.sql.gz"
     end
 
-    local = Application::Local.new(self)
-    if remote.postgresql? && local.sqlite3?
+    if remote.postgresql? && local.postgresql?
+      system 'bin/rake db:drop && bin/rake db:create'
+      system "gunzip -c #{fetch(:application)}.sql.gz | psql #{local.database}"
+      system 'bin/rails db:environment:set RAILS_ENV=development'
+    elsif remote.postgresql? && local.sqlite3?
       system "echo 'BEGIN;' > #{fetch(:application)}.sql"
       system "gunzip -c #{fetch(:application)}.sql.gz | sed '/^SET/ d' |\
         sed '/^SELECT pg_catalog.setval/ d' |\
@@ -26,18 +33,20 @@ namespace :db do
         sed \"s/true)/'t')/g\" |\
         sed \"s/false)/'f')/g\" >> #{fetch(:application)}.sql"
       system "echo 'END;' >> #{fetch(:application)}.sql"
+      system "bin/rake db:drop && bin/rake db:schema:load &&
+          cat #{fetch(:application)}.sql | sqlite3 db/development.sqlite3"
     elsif remote.mysql? && local.sqlite3?
       system "gunzip -c #{fetch(:application)}.sql.gz |
           sed 's/\\`//g' |
           sed \"s/\\\\\\\'/\'\'/g\" |
           sed 's/\\\"/\"/g' > #{fetch(:application)}.sql"
+      system "bin/rake db:drop && bin/rake db:schema:load &&
+          cat #{fetch(:application)}.sql | sqlite3 db/development.sqlite3"
     else
       raise "Local database adapter '#{local.adapter}' is currently unsupported"
     end
-    system "bin/rake db:drop && bin/rake db:schema:load &&
-        cat #{fetch(:application)}.sql | sqlite3 db/development.sqlite3"
 
-    system "rm #{fetch(:application)}.sql"
-    system "rm #{fetch(:application)}.sql.gz"
+    system "rm -f #{fetch(:application)}.sql"
+    system "rm -f #{fetch(:application)}.sql.gz"
   end
 end
