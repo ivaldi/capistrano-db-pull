@@ -4,7 +4,7 @@ namespace :db do
     local = Application::Local.new(self)
 
     on roles(:db) do
-      remote = Application::Remote.new(self, fetch(:stage) || 'production')
+      remote = Application::Remote.new(self, fetch(:rails_env) || 'production')
       if remote.postgresql? && local.postgresql?
         execute "pg_dump --no-owner #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
       elsif remote.postgresql? && local.sqlite3?
