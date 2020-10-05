@@ -10,7 +10,7 @@ namespace :db do
       elsif remote.postgresql? && local.sqlite3?
         execute "pg_dump --data-only --exclude-table=schema_migrations --column-inserts #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
       elsif remote.mysql?
-        execute "mysqldump --skip-opt --no-create-info #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
+        execute "mysqldump --skip-opt --routines --triggers --events #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
       else
         raise "Remote database adapter '#{remote.adapter}' is currently unsupported"
       end
@@ -42,6 +42,11 @@ namespace :db do
           sed 's/\\\"/\"/g' > #{fetch(:application)}.sql"
       system "bin/rake db:drop && bin/rake db:schema:load &&
           cat #{fetch(:application)}.sql | sqlite3 db/development.sqlite3"
+    elsif remote.mysql? && local.mysql?
+      system 'bin/rake db:drop'
+      system 'bin/rake db:create'
+      system "gunzip -c #{fetch(:application)}.sql.gz | mysql #{local.database}"
+      system 'bin/rails db:environment:set RAILS_ENV=development'
     else
       raise "Local database adapter '#{local.adapter}' is currently unsupported"
     end
