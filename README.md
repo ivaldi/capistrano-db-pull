@@ -15,6 +15,8 @@ Replace your local development database with a database pulled from the server.
 
 - Make sure a .my.cnf file is available in your home directory with your MySQL default login settings:
 
+```
 [client]
 user=root
 password=root
+```
