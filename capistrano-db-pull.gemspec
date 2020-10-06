@@ -2,7 +2,7 @@ $:.push File.expand_path('../lib', __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = 'capistrano-db-pull'
-  s.version     = '0.0.7'
+  s.version     = '0.0.8'
   s.licenses    = ['BSD-2-Clause']
 
   s.summary     = 'Download remote database to local database'
