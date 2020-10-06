@@ -8,9 +8,13 @@ namespace :db do
       if remote.postgresql? && local.postgresql?
         execute "pg_dump --no-owner #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
       elsif remote.postgresql? && local.sqlite3?
-        execute "pg_dump --data-only --exclude-table=schema_migrations --column-inserts #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
+        command = 'pg_dump --data-only --exclude-table=schema_migrations --column-inserts '
+        command += "#{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
+        execute command
       elsif remote.mysql?
-        execute "mysqldump --skip-opt --routines --triggers --events #{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
+        command = 'mysqldump --skip-lock-tables --routines --triggers --events '
+        command += "#{remote.database} | gzip -9 > #{fetch(:application)}.sql.gz"
+        execute command
       else
         raise "Remote database adapter '#{remote.adapter}' is currently unsupported"
       end
